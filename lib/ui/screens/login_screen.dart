@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mapaclip/screens/interactive_map.dart';
+import 'package:mapaclip/ui/screens/interactive_map.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

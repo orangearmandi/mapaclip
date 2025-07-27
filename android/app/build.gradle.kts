@@ -28,6 +28,12 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders.putAll(
+            mapOf(
+                "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
+                "auth0Scheme" to "https"
+            )
+        )
     }
 
     buildTypes {
@@ -35,6 +41,20 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            manifestPlaceholders.putAll(
+                mapOf(
+                    "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
+                    "auth0Scheme" to "https"
+                )
+            )
+        }
+        getByName("debug") {
+            manifestPlaceholders.putAll(
+                mapOf(
+                    "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
+                    "auth0Scheme" to "https"
+                )
+            )
         }
     }
 }

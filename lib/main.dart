@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mapaclip/screens/login_screen.dart';
+import 'package:mapaclip/ui/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,4 +36,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
