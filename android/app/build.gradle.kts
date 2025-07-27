@@ -31,7 +31,7 @@ android {
         manifestPlaceholders.putAll(
             mapOf(
                 "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
-                "auth0Scheme" to "https"
+                "auth0Scheme" to "mapaclip"
             )
         )
     }
@@ -44,7 +44,7 @@ android {
             manifestPlaceholders.putAll(
                 mapOf(
                     "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
-                    "auth0Scheme" to "https"
+                    "auth0Scheme" to "mapaclip"
                 )
             )
         }
@@ -52,7 +52,7 @@ android {
             manifestPlaceholders.putAll(
                 mapOf(
                     "auth0Domain" to "dev-uez7twh6mq8xvptj.us.auth0.com",
-                    "auth0Scheme" to "https"
+                    "auth0Scheme" to "mapaclip"
                 )
             )
         }

@@ -5,7 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapaclip/core/constants/map_constants.dart';
-import 'package:mapaclip/core/utils/permissions_screen.dart';
+import 'package:mapaclip/core/utils/permissions.dart';
 import 'package:mapaclip/data/models/weather_model.dart';
 import 'package:mapaclip/data/datasources/weather_service.dart';
 
@@ -29,25 +29,27 @@ class _InteractiveMapState extends State<InteractiveMap> {
     super.initState();
     determinePosition();
     _getCurrentLocation();
-
+    _loadUserLocation();
   }
-  Future<Position> determinePosition() async {
-    LocationPermission permission = await Geolocator.checkPermission();
 
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Permiso de ubicación denegado');
-      }
+  void _loadUserLocation() async {
+    try {
+      final userPos = await determinePosition();
+      setState(() {
+        _myPosition = LatLng(userPos.latitude, userPos.longitude);
+      });
+    } catch (e) {
+      print('⚠️ No se pudo obtener ubicación. Usando posición por defecto.');
+      setState(() {
+        _myPosition = MapConstants.initialPosition;
+      });
     }
-
-    return await Geolocator.getCurrentPosition();
   }
+
 
   void _getCurrentLocation() async {
-    final position = await Geolocator.getCurrentPosition();
     setState(() {
-      _myPosition = LatLng(position.latitude, position.longitude);
+
       markers.add(
         Marker(
           child: const Icon(Icons.location_pin, size: 40, color: Colors.red),
@@ -62,11 +64,11 @@ class _InteractiveMapState extends State<InteractiveMap> {
         _myPosition!.longitude,
       );
     });
-    final Position = await Geolocator.getCurrentPosition();
-    final latLng = LatLng(position.latitude, position.longitude);
+
+    final latLng = LatLng(_myPosition!.latitude, _myPosition!.longitude);
 
     _updateCenterAndWeather(latLng);
-    print('Coordenadas obtenidas: $_myPosition, ${position.longitude}');
+
   }
 
 
@@ -77,8 +79,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
       _mapCenter = center;
       _myPosition = center;
     });
-
-
 
     final weather = await WeatherService().fetchWeatherByCoords(
       center.latitude,
@@ -105,6 +105,24 @@ class _InteractiveMapState extends State<InteractiveMap> {
 
   @override
   Widget build(BuildContext context) {
+
+    // ✅ Mostrar pantalla de carga si no se ha obtenido la ubicación
+    if (_myPosition == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Cargando...")),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Buscando ubicación actual...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Clima')),
       body: Column(
@@ -117,7 +135,10 @@ class _InteractiveMapState extends State<InteractiveMap> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _getCurrentLocation,
+        onPressed: () {
+          _getCurrentLocation();
+          _mapController.move(_myPosition!, 15.0);
+        },
         child: const Icon(Icons.my_location),
       ),
     );
@@ -130,26 +151,22 @@ class _InteractiveMapState extends State<InteractiveMap> {
       child: FlutterMap(
         mapController: _mapController,
         options: MapOptions(
-          initialCenter: _myPosition ?? MapConstants.initialPosition,
-          initialZoom: MapConstants.defaultZoom,
-          minZoom: MapConstants.minZoom,
+          initialCenter: _myPosition! ,
+          initialZoom: 15,
+          minZoom: 10,
           maxZoom: MapConstants.maxZoom,
             onPositionChanged: (position, hasGesture) {
               final newCenter = position.center;
-
               if (hasGesture && newCenter != null) {
                 final moved = _mapCenter == null ||
                     _mapCenter!.latitude != newCenter.latitude ||
                     _mapCenter!.longitude != newCenter.longitude;
-
                 if (moved) {
                   _mapCenter = newCenter;
-
                   // 👇 Cancela el intento anterior
                   _debounce?.cancel();
-
                   // 👇 Reprograma para 500ms después de terminar el gesto
-                  _debounce = Timer(const Duration(milliseconds: 500), () {
+                  _debounce = Timer(const Duration(milliseconds: 600), () {
                     _updateCenterAndWeather(newCenter);
                   });
                 }
@@ -163,7 +180,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
             additionalOptions: {
               'accessToken': MapConstants.mapboxAccessToken,
-              'id': 'mapbox/streets-v12',
+              'id': 'mapbox/dark-v11',
             },
           ),
           MarkerLayer(markers: markers),
@@ -199,8 +216,8 @@ class _InteractiveMapState extends State<InteractiveMap> {
               Text(weather.weather.first.description),
               Image.network(
                 "https://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png",
-                width: 70,
-                height: 70,
+                width: 130,
+                height: 130,
               ),
             ],
           );

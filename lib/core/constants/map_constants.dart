@@ -1,6 +1,8 @@
 import 'package:latlong2/latlong.dart';
 
 class MapConstants {
+
+
   static const initialPosition = LatLng(4.6097100, -74.0817500);
   static const defaultZoom = 12.0;
   static const minZoom = 10.0;
@@ -12,4 +14,6 @@ class MapConstants {
   static const mapboxStyleId = 'mapbox/streets-v12';
   static const mapboxAccessToken =
       "pk.eyJ1IjoiY2VzYXJvcmFuZ2UiLCJhIjoiY2x1OWFxYnluMDgwNDJxcHExbGhuc3p3NSJ9.ABA5K-LZ6VYKQ8Vrin8I8A";
+
+
 }
