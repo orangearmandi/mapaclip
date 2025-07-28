@@ -27,15 +27,22 @@ class _InteractiveMapState extends State<InteractiveMap> {
   List<Map<String, dynamic>> locations = [];
 
 
-  void _insertSampleLocation() {
-    sql.insertLocation(4.6097, -74.0817, 'Bogotá centro', '🏙️');
+  Future<void> _insertLocation(     String ciudad,
+       double lat,
+       double lng,
+       String descripcion,
+       String icon,) async {
+    await SqlService.instance.insertLocation(
+      ciudad: ciudad,
+      lat: lat,
+      lng: lng,
+      descripcion: descripcion,
+      icon: icon,
+    );
     _loadLocations();
   }
 
-  void _updateLocation(int id) {
-    sql.updateLocation(id, 4.6, -74.08, 'Actualizado', '🗺️');
-    _loadLocations();
-  }
+
 
   void _deleteLocation(int id) {
     sql.deleteLocation(id);
@@ -48,6 +55,81 @@ class _InteractiveMapState extends State<InteractiveMap> {
       locations = data;
     });
   }
+
+  /*
+  * Future<void> _loadLocations() async {
+  final data = sql.getAllLocations();
+  setState(() {
+    locations = data;
+
+    markers = locations.map((loc) {
+      return Marker(
+        width: 160,
+        height: 160,
+        point: LatLng(loc['latitud'], loc['longitud']),
+        child: GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                backgroundColor: Colors.blue.shade900,
+                title: Row(
+                  children: [
+                    Image.network(
+                      "https://openweathermap.org/img/wn/${loc['icon']}@2x.png",
+                      width: 50,
+                      height: 50,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Ciudad: ${loc['ciudad'] ?? 'Desconocida'}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            "Descripción: ${loc['descripcion']}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            "Lat: ${loc['latitud']}, Lng: ${loc['longitud']}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          child: Image.network(
+            "https://openweathermap.org/img/wn/${loc['icon']}@2x.png",
+            width: 50,
+            height: 50,
+          ),
+        ),
+      );
+    }).toList();
+  });
+}
+
+  * */
 
   final MapController _mapController = MapController();
   LatLng? _myPosition;
@@ -63,6 +145,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
     _getCurrentLocation();
     _loadUserLocation();
   }
+
   void _loadUserLocation() async {
     try {
       final userPos = await determinePosition();
@@ -90,10 +173,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
 
     _updateCenterAndWeather(latLng);
   }
-
-
-
-
   void _updateCenterAndWeather(LatLng center) async {
     setState(() {
       _mapCenter = center;
@@ -131,7 +210,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
                      Expanded(
                       child: Column(children: [
                         Text(
-                          "Clima: ${weather.name}",
+                          "Ciudad: ${weather.name}",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -146,6 +225,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
                             fontSize: 12,
                           ),
                         ),
+
                         Text(
                           "Temperatura: ${(weather.main.temp - 273.15).toStringAsFixed(1)} °C",
                           style: TextStyle(
@@ -164,14 +244,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
                             ),
                           ),
                           onPressed: () {
-
-
-
-
-                            _insertSampleLocation();
-
-
-
+                            _insertLocation(weather.name,center.latitude,center.longitude,weather.weather.first.description,weather.weather.first.icon);
                           },
                           child: const Text(
                             "GUARDAR",
@@ -220,8 +293,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
     } final  authService = Provider.of<AuthService>(context);
 
     return Scaffold(
-
-
       appBar: AppBar(
         title: const Text('Clima'),
         actions: [
@@ -246,24 +317,53 @@ class _InteractiveMapState extends State<InteractiveMap> {
           Expanded( child: _buildMap(MediaQuery.of(context).size),),
           Expanded(
             flex: 1,
-            child: ListView.builder(
+            child: locations.isEmpty
+                ? const Center(child: Text('No hay ubicaciones registradas.'))
+                : ListView.builder(
               itemCount: locations.length,
               itemBuilder: (context, index) {
                 final loc = locations[index];
                 return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: ListTile(
-                    leading: Text(loc['icon'] ?? '📍', style: const TextStyle(fontSize: 24)),
-                    title: Text('${loc['descripcion']}'),
-                    subtitle: Text('Lat: ${loc['latitud']}, Lng: ${loc['longitud']}'),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    leading: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.blue.shade100,
+                      child:
+                      Image.network(
+                        "https://openweathermap.org/img/wn/${loc['icon']}@2x.png",
+                        width: 50,
+                        height: 50,
+                      ),
+                    ),
+                    title: Text(
+                      '${loc['descripcion']} - ${loc['ciudad']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      'Lat: ${loc['latitud']}, Lng: ${loc['longitud']}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _updateLocation(loc['id']),
+                          icon: const Icon(Icons.gps_fixed, color: Colors.blue),
+                          onPressed: () {
+                            final lat = loc['latitud'] as double;
+                            final lng = loc['longitud'] as double;
+                            _mapController.move(LatLng(lat, lng), 15.0);
+                            // Aquí puedes abrir un modal para editar la ubicación si deseas
+                          },
                         ),
+
                         IconButton(
-                          icon: const Icon(Icons.delete),
+                          icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () => _deleteLocation(loc['id']),
                         ),
                       ],
@@ -272,7 +372,8 @@ class _InteractiveMapState extends State<InteractiveMap> {
                 );
               },
             ),
-          ),
+          )
+
         ],
       ),
       floatingActionButton: FloatingActionButton(

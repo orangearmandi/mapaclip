@@ -20,6 +20,7 @@ class SqlService {
     db.execute('''
       CREATE TABLE IF NOT EXISTS locations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ciudad TEXT NOT NULL,
         latitud REAL NOT NULL,
         longitud REAL NOT NULL,
         descripcion TEXT,
@@ -28,10 +29,16 @@ class SqlService {
     ''');
   }
 
-  Future<void> insertLocation(double lat, double lng, String descripcion, String icon) async {
+  Future<void> insertLocation({
+    required String ciudad,
+    required double lat,
+    required double lng,
+    required String descripcion,
+    required String icon,
+  }) async {
     db.execute(
-      'INSERT INTO locations (latitud, longitud, descripcion, icon) VALUES (?, ?, ?, ?);',
-      [lat, lng, descripcion, icon],
+      'INSERT INTO locations (ciudad, latitud, longitud, descripcion, icon) VALUES (?, ?, ?, ?, ?);',
+      [ciudad, lat, lng, descripcion, icon],
     );
   }
 
@@ -39,6 +46,7 @@ class SqlService {
     final result = db.select('SELECT * FROM locations');
     return result.map((row) => {
       'id': row['id'],
+      'ciudad': row['ciudad'],
       'latitud': row['latitud'],
       'longitud': row['longitud'],
       'descripcion': row['descripcion'],
@@ -46,10 +54,17 @@ class SqlService {
     }).toList();
   }
 
-  void updateLocation(int id, double lat, double lng, String descripcion, String icon) {
+  void updateLocation({
+    required int id,
+    required String ciudad,
+    required double lat,
+    required double lng,
+    required String descripcion,
+    required String icon,
+  }) {
     db.execute(
-      'UPDATE locations SET latitud = ?, longitud = ?, descripcion = ?, icon = ? WHERE id = ?;',
-      [lat, lng, descripcion, icon, id],
+      'UPDATE locations SET ciudad = ?, latitud = ?, longitud = ?, descripcion = ?, icon = ? WHERE id = ?;',
+      [ciudad, lat, lng, descripcion, icon, id],
     );
   }
 
