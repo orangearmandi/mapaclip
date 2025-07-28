@@ -8,6 +8,9 @@ import 'package:mapaclip/core/constants/map_constants.dart';
 import 'package:mapaclip/core/utils/permissions.dart';
 import 'package:mapaclip/data/models/weather_model.dart';
 import 'package:mapaclip/data/datasources/weather_service.dart';
+import 'package:mapaclip/data/datasources/sql_service_weather.dart';
+
+
 
 class InteractiveMap extends StatefulWidget {
   const InteractiveMap({super.key});
@@ -17,6 +20,43 @@ class InteractiveMap extends StatefulWidget {
 }
 
 class _InteractiveMapState extends State<InteractiveMap> {
+
+  /////State
+
+  final SqlService sql = SqlService.instance;
+  List<Map<String, dynamic>> locations = [];
+
+
+  void _insertSampleLocation() {
+    sql.insertLocation(4.6097, -74.0817, 'Bogotá centro', '🏙️');
+    _loadLocations();
+  }
+
+  void _updateLocation(int id) {
+    sql.updateLocation(id, 4.6, -74.08, 'Actualizado', '🗺️');
+    _loadLocations();
+  }
+
+  void _deleteLocation(int id) {
+    sql.deleteLocation(id);
+    _loadLocations();
+  }
+
+  Future<void> _loadLocations() async {
+    final data = sql.getAllLocations();
+    setState(() {
+      locations = data;
+    });
+  }
+
+
+
+
+
+
+
+
+
   final MapController _mapController = MapController();
   LatLng? _myPosition;
   LatLng? _mapCenter;
@@ -31,7 +71,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
     _getCurrentLocation();
     _loadUserLocation();
   }
-
   void _loadUserLocation() async {
     try {
       final userPos = await determinePosition();
@@ -45,19 +84,9 @@ class _InteractiveMapState extends State<InteractiveMap> {
       });
     }
   }
-
-
   void _getCurrentLocation() async {
     setState(() {
-
-      markers.add(
-        Marker(
-          child: const Icon(Icons.location_pin, size: 40, color: Colors.red),
-          point: _myPosition!,
-        ),
-      );
       _mapCenter = _myPosition; // Opcional: lo usas como centro del mapa
-
       // Solo cuando tengas la posición, llama a la API del clima
       _weatherFuture = WeatherService().fetchWeatherByCoords(
         _myPosition!.latitude,
@@ -68,7 +97,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
     final latLng = LatLng(_myPosition!.latitude, _myPosition!.longitude);
 
     _updateCenterAndWeather(latLng);
-
   }
 
 
@@ -91,21 +119,90 @@ class _InteractiveMapState extends State<InteractiveMap> {
           width: 160,
           height: 160,
           point: center,
-          child: Image.network(
-            "https://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png",
-            width: 50,
-            height: 50,
+          child: GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) =>AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                 backgroundColor:   Colors.blue.shade900,
+
+                    title: Row(
+
+                  children: [
+                    Image.network(
+                      "https://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png",
+                      width: 50,
+                      height: 50,
+                    ),
+                     SizedBox(width: 10),
+                     Expanded(
+                      child: Column(children: [
+                        Text(
+                          "Clima: ${weather.name}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          "Descripcion: ${weather.weather.first.description}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          "Temperatura: ${(weather.main.temp - 273.15).toStringAsFixed(1)} °C",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(width: 10,height: 10,),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.blue, // Color de fondo
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            // Acción al presionar
+                          },
+                          child: const Text(
+                            "GUARDAR",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],)
+                    ),
+                  ],
+                ))
+              );
+            },
+            child: Image.network(
+              "https://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png",
+              width: 50,
+              height: 50,
+            ),
           ),
         ),
       ];
+
 
       _weatherFuture = Future.value(weather);
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
-
+    _loadLocations();
     // ✅ Mostrar pantalla de carga si no se ha obtenido la ubicación
     if (_myPosition == null) {
       return Scaffold(
@@ -130,8 +227,36 @@ class _InteractiveMapState extends State<InteractiveMap> {
           Text(
             "Centro del mapa: ${_mapCenter?.latitude?.toStringAsFixed(4)}, ${_mapCenter?.longitude?.toStringAsFixed(4)}",
           ),
-          _buildMap(MediaQuery.of(context).size),
-          Expanded(child: _buildWeatherInfo()),
+          Expanded( child: _buildMap(MediaQuery.of(context).size),),
+          Expanded(
+            flex: 1,
+            child: ListView.builder(
+              itemCount: locations.length,
+              itemBuilder: (context, index) {
+                final loc = locations[index];
+                return Card(
+                  child: ListTile(
+                    leading: Text(loc['icon'] ?? '📍', style: const TextStyle(fontSize: 24)),
+                    title: Text('${loc['descripcion']}'),
+                    subtitle: Text('Lat: ${loc['latitud']}, Lng: ${loc['longitud']}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _updateLocation(loc['id']),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deleteLocation(loc['id']),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -180,7 +305,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
             additionalOptions: {
               'accessToken': MapConstants.mapboxAccessToken,
-              'id': 'mapbox/dark-v11',
+              'id': 'mapbox/dark-v9',
             },
           ),
           MarkerLayer(markers: markers),
@@ -189,41 +314,9 @@ class _InteractiveMapState extends State<InteractiveMap> {
     );
   }
 
-  Widget _buildWeatherInfo() {
-    return FutureBuilder<WeatherResponse>(
-      future: _weatherFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData) {
-          final weather = snapshot.data!;
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                weather.name,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${(weather.main.temp - 273.15).toStringAsFixed(1)} °C',
-                style: const TextStyle(fontSize: 20),
-              ),
-              Text(weather.weather.first.description),
-              Image.network(
-                "https://openweathermap.org/img/wn/${weather.weather.first.icon}@2x.png",
-                width: 130,
-                height: 130,
-              ),
-            ],
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
+
+
 }
+
+
+
