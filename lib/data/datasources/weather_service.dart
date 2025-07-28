@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mapaclip/data/models/weather_model.dart'; // Asegúrate de importar el modelo que generaste
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 class WeatherService {
-  final String apiKey =
-      'ae36192518ad3b93b218a1cc6a22a5f0'; // <-- Sustituye por tu API Key real
+  final String apiKey = dotenv.env['SECRETCLIENTW']!;
+
   final String baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
 
 

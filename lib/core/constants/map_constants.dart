@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MapConstants {
 
@@ -12,8 +13,9 @@ class MapConstants {
       'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}';
   static const userAgentPackageName = 'MAPBOX_ACCESS_TOKEN';
   static const mapboxStyleId = 'mapbox/streets-v12';
-  static const mapboxAccessToken =
-      "pk.eyJ1IjoiY2VzYXJvcmFuZ2UiLCJhIjoiY2x1OWFxYnluMDgwNDJxcHExbGhuc3p3NSJ9.ABA5K-LZ6VYKQ8Vrin8I8A";
+  static final  mapboxAccessToken = dotenv.env['mapboxAccessToken'];
+
+
 
 
 }

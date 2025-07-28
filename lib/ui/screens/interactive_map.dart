@@ -9,8 +9,8 @@ import 'package:mapaclip/core/utils/permissions.dart';
 import 'package:mapaclip/data/models/weather_model.dart';
 import 'package:mapaclip/data/datasources/weather_service.dart';
 import 'package:mapaclip/data/datasources/sql_service_weather.dart';
-
-
+import 'package:mapaclip/data/datasources/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class InteractiveMap extends StatefulWidget {
   const InteractiveMap({super.key});
@@ -48,14 +48,6 @@ class _InteractiveMapState extends State<InteractiveMap> {
       locations = data;
     });
   }
-
-
-
-
-
-
-
-
 
   final MapController _mapController = MapController();
   LatLng? _myPosition;
@@ -172,7 +164,14 @@ class _InteractiveMapState extends State<InteractiveMap> {
                             ),
                           ),
                           onPressed: () {
-                            // Acción al presionar
+
+
+
+
+                            _insertSampleLocation();
+
+
+
                           },
                           child: const Text(
                             "GUARDAR",
@@ -218,10 +217,27 @@ class _InteractiveMapState extends State<InteractiveMap> {
           ),
         ),
       );
-    }
+    } final  authService = Provider.of<AuthService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Clima')),
+
+
+      appBar: AppBar(
+        title: const Text('Clima'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () async {
+              await authService.logoutAction();
+              // Opcional: Puedes mostrar un mensaje
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Sesión cerrada')),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Text(
@@ -266,6 +282,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
         },
         child: const Icon(Icons.my_location),
       ),
+
     );
   }
 
@@ -304,7 +321,7 @@ class _InteractiveMapState extends State<InteractiveMap> {
             urlTemplate:
                 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
             additionalOptions: {
-              'accessToken': MapConstants.mapboxAccessToken,
+              'accessToken': MapConstants.mapboxAccessToken!,
               'id': 'mapbox/dark-v9',
             },
           ),

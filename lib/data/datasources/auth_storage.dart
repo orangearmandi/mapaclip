@@ -1,35 +1,53 @@
 import 'dart:io';
-
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class AuthStorage {
-  late final Database db;
+  static final AuthStorage instance = AuthStorage._internal();
+  late Database _db;
 
-  AuthStorage._internal() {
-    final dbPath = p.join(Directory.current.path, 'auth_data.db');
-    db = sqlite3.open(dbPath);
-    db.execute('''
-      CREATE TABLE IF NOT EXISTS credentials (
-        id INTEGER PRIMARY KEY,
-        data TEXT NOT NULL
+  AuthStorage._internal();
+
+  Future<void> init() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final dbPath = p.join(dir.path, 'auth.db');
+    _db = sqlite3.open(dbPath);
+
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS session (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        access_token TEXT
       );
     ''');
   }
 
-  static final AuthStorage instance = AuthStorage._internal();
-
-  void save(String jsonData) {
-    db.execute('DELETE FROM credentials;');
-    db.execute('INSERT INTO credentials (data) VALUES (?);', [jsonData]);
+  Future<void> saveSession(String accessToken) async {
+    _db.execute('DELETE FROM session;');
+    _db.execute(
+      'INSERT INTO session (access_token) VALUES (?);',
+      [accessToken],
+    );
   }
 
-  String? retrieve() {
-    final result = db.select('SELECT data FROM credentials LIMIT 1;');
-    return result.isNotEmpty ? result.first['data'] as String : null;
+  String? getAccessToken() {
+    try {
+      final result = _db.select('SELECT access_token FROM session LIMIT 1;');
+      if (result.isNotEmpty) {
+        return result.first['access_token'] as String;
+      }
+    } catch (e) {
+      print('Error al leer access_token: $e');
+    }
+    return null;
   }
 
-  void clear() {
-    db.execute('DELETE FROM credentials;');
+
+  Future<void> clearSession() async {
+    _db.execute('DELETE FROM session;');
+  }
+
+  void close() {
+    _db.dispose();
   }
 }

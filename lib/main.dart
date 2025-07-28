@@ -9,10 +9,10 @@ import 'package:sqlite3/sqlite3.dart'; // Importante para usar sqlite3_flutter_l
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
-   // Referencia explícita para asegurar que el binding se incluya
+  // Referencia explícita para asegurar que el binding se incluya
   sqlite3;
 
-       // Inicializa SQLite
+  // Inicializa SQLite
   runApp(
     ChangeNotifierProvider(
       create: (_) => AuthService(),
@@ -45,4 +45,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
