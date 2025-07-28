@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: Center(
           child: authService.isBusy
-              ? const CircularProgressIndicator()
+              ? const CircularProgressIndicator(backgroundColor: Colors.blue,)
               : authService.isLoggedIn
               ? const InteractiveMap()
               : Login(

@@ -17,6 +17,8 @@ class SqlService {
     final file = File(dbPath);
 
     db = sqlite3.open(file.path);
+
+    // Crear tabla si no existe
     db.execute('''
       CREATE TABLE IF NOT EXISTS locations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,9 +26,19 @@ class SqlService {
         latitud REAL NOT NULL,
         longitud REAL NOT NULL,
         descripcion TEXT,
-        icon TEXT
+        icon TEXT,
+        temperatura REAL,
+        fecha TEXT
       );
     ''');
+
+    // Agregar columnas si no existen (si ya están, se ignora el error)
+    try {
+      db.execute("ALTER TABLE locations ADD COLUMN temperatura REAL;");
+    } catch (_) {}
+    try {
+      db.execute("ALTER TABLE locations ADD COLUMN fecha TEXT;");
+    } catch (_) {}
   }
 
   Future<void> insertLocation({
@@ -35,10 +47,13 @@ class SqlService {
     required double lng,
     required String descripcion,
     required String icon,
+    required double temperatura,
+    String? fecha, // opcional
   }) async {
+    final now = fecha ?? DateTime.now().toIso8601String();
     db.execute(
-      'INSERT INTO locations (ciudad, latitud, longitud, descripcion, icon) VALUES (?, ?, ?, ?, ?);',
-      [ciudad, lat, lng, descripcion, icon],
+      'INSERT INTO locations (ciudad, latitud, longitud, descripcion, icon, temperatura, fecha) VALUES (?, ?, ?, ?, ?, ?, ?);',
+      [ciudad, lat, lng, descripcion, icon, temperatura, now],
     );
   }
 
@@ -51,20 +66,24 @@ class SqlService {
       'longitud': row['longitud'],
       'descripcion': row['descripcion'],
       'icon': row['icon'],
+      'temperatura': row['temperatura'],
+      'fecha': row['fecha'],
     }).toList();
   }
 
   void updateLocation({
     required int id,
+    required double temperatura,
     required String ciudad,
     required double lat,
     required double lng,
     required String descripcion,
+    required String fecha,
     required String icon,
   }) {
     db.execute(
-      'UPDATE locations SET ciudad = ?, latitud = ?, longitud = ?, descripcion = ?, icon = ? WHERE id = ?;',
-      [ciudad, lat, lng, descripcion, icon, id],
+      'UPDATE locations SET ciudad = ?, latitud = ?, longitud = ?, descripcion = ?, icon = ?, temperatura = ?, fecha = ? WHERE id = ?;',
+      [ciudad, lat, lng, descripcion, icon, temperatura, fecha, id],
     );
   }
 

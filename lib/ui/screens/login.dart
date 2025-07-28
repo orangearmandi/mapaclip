@@ -49,7 +49,7 @@ class Login extends StatelessWidget {
                   label: const Text("Iniciar sesión con Auth0"),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     textStyle: const TextStyle(fontSize: 16),
                     shape: RoundedRectangleBorder(

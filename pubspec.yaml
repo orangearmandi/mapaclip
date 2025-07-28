@@ -47,6 +47,8 @@ dependencies:
   provider: ^6.1.5
   sqlite3_flutter_libs: ^0.5.38
   flutter_secure_storage: ^9.2.4
+  intl: ^0.20.2
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +60,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+flutter_launcher_icons:
+  android: true
+  ios: true
+  adaptive_icon_background: "#ffffff" # opcional (Android 8+)
+  image_path: "assets/clima.png" # cambia la ruta a tu icono
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

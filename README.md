@@ -1,16 +1,32 @@
-# mapaclip
+# 🌦️ mapaclip
 
-climap
+**Climap** es una app móvil construida con Flutter que muestra información climática en un mapa interactivo. Los usuarios pueden consultar el clima actual en su ubicación y guardar datos meteorológicos en una base de datos local.
 
-## Getting Started
+## 🚀 Características
 
-This project is a starting point for a Flutter application.
+- Mapa interactivo con marcadores del clima.
+- Consulta del clima actual usando OpenWeatherMap.
+- Almacenamiento de datos local con SQLite.
+- Autenticación con Auth0.
+- Diseño responsive y amigable.
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Tecnologías
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter + Riverpod + Provider
+- `flutter_map` + `latlong2`
+- SQLite3 con `sqlite3_flutter_libs`
+- Auth0 (`auth0_flutter`)
+- `flutter_dotenv` para manejo de variables de entorno
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## ✅ Requisitos
+
+- Flutter 3.7.2 o superior
+- Clave API de [OpenWeatherMap](https://openweathermap.org/api)
+- Archivo `.env` con tu configuración (clientId, domain, apiKey, etc)
+
+## 📦 Instalación
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/orangearmandi/mapaclip.git
+   cd mapaclip
